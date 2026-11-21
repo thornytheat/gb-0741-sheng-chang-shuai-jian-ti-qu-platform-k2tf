@@ -46,3 +46,4 @@ class Signal:
     peak_index: int
     pa: tuple[float, ...]
     line_numbers: tuple[int, ...]
+    onset_index: int | None = None

@@ -13,6 +13,7 @@ from app.modules.m4_fit.handler import router as fit
 from app.modules.m5_noise.handler import router as noise
 from app.modules.m6_reconcile.handler import router as reconcile
 from app.modules.m7_archive.handler import router as archive
+from app.modules.m8_onset.handler import router as onset
 from app.store import Store
 from app.web import router as web
 
@@ -27,7 +28,7 @@ def create_app(path=None):
 
     application = FastAPI(title='声场衰减提取台', lifespan=lifespan)
     application.add_exception_handler(Problem, response)
-    for router in (intake, calibration, decay, fit, noise, reconcile, archive, web):
+    for router in (intake, calibration, decay, fit, noise, reconcile, onset, archive, web):
         application.include_router(router)
     application.mount('/static', StaticFiles(directory=APP_DIR / 'static'), name='static')
     return application

@@ -9,6 +9,7 @@
 |---|---|---|---|---|
 | M1 脉冲响应收件 | 导入带时间索引的 CSV，定位缺点和矛盾 | `POST /api/intake` | `app/modules/m1_intake/reader.py` `app/modules/m1_intake/continuity.py` | `tests/test_intake.py` |
 | M2 量纲校准 | 查看压力系数、直达声索引和来源行 | `GET /api/calibration/{source_id}` | `app/modules/m2_calibration/units.py` | `tests/test_calibration.py` |
+| M8 起点对齐 | 核对各频带采信起点、前置段与整点交付判定 | `GET /api/onset/{source_id}` | `app/modules/m8_onset/detection.py` `app/modules/m8_onset/alignment.py` | `tests/test_onset.py` |
 | M3 能量衰减 | 检查扣噪后反向能量积分结果 | `GET /api/decay/{source_id}` | `app/modules/m3_decay/integral.py` `app/modules/m3_decay/service.py` | `tests/test_decay.py` |
 | M4 拟合时段 | 读取 T20 与 T30 时间窗、回归系数及质量 | `GET /api/fit/{source_id}` | `app/modules/m4_fit/windows.py` `app/modules/m4_fit/regression.py` | `tests/test_fit.py` |
 | M5 噪声判废 | 核对尾段噪声和两档动态范围 | `GET /api/noise/{source_id}` | `app/modules/m5_noise/gate.py` | `tests/test_noise.py` |
@@ -33,7 +34,14 @@
 | TRAP-18 | 零字节、全空与仅表头 | 记录空结果为成功 | 返回独立的文件级原因 | `app/modules/m1_intake/reader.py` | `tests/test_intake.py::test_empty_cases_raise_distinct_codes` |
 | TRAP-19 | 测试中一个低块夹在可用区间 | 瞬态低块误判整个尾段 | 连续两块才截断 | `app/modules/m5_noise/gate.py` | `tests/test_noise.py::test_consecutive_low_blocks_cut_at_first_block` |
 | TRAP-23 | 测试曲线阈值等于样本值 | 跳过等号或将越界点纳入 | 明确交点与回归右端排除 | `app/modules/m4_fit/windows.py` | `tests/test_fit.py::test_threshold_crossing_interpolates_and_has_exclusive_stop` |
+| TRAP-24 | 复测样例 500 Hz 到达前有电磁尖峰 | 最早越限样本当成到达 | 两个连续块持续越限才算到达，尖峰留证 | `app/modules/m8_onset/detection.py` | `tests/test_onset.py::test_isolated_spike_before_arrival_is_not_onset` |
+| TRAP-25 | 复测样例 1000 Hz 最大峰是后期反射 | 起点错移到反射峰 | 首个持续到达为起点，峰值仅作证据 | `app/modules/m8_onset/detection.py` | `tests/test_onset.py::test_stronger_late_reflection_does_not_move_onset` |
+| TRAP-26 | 前置段比尾段噪声更响 | 前置静音误判为到达 | 主能量区之前的块估计到达前底噪 | `app/modules/m8_onset/detection.py` | `tests/test_onset.py::test_leading_segment_louder_than_tail_is_not_arrival` |
+| TRAP-27 | 2000 Hz 可拟合但到达晚 60 ms | 另立起点交付整点 | 记分歧、整点退回补测，证据保留 | `app/modules/m8_onset/alignment.py` | `tests/test_onset.py::test_retest_point_sent_back_for_remeasurement` |
+| TRAP-28 | 起点规则修正后旧归档仍在 | 旧结论被当现行复跑 | 规则版本变更即失效，可查阅不可重跑 | `app/modules/m7_archive/service.py` | `tests/test_onset.py::test_onset_rule_change_invalidates_old_archive_but_keeps_it_readable` |
 
 ## 对账断言
 
-礼堂样例共 8 个频带，4 个可拟合、1 个动态范围不足、3 个隔离，频带及采样行差额均为零。8000 Hz 两档标差约 22.26%。
+礼堂样例共 8 个频带，4 个可拟合、1 个动态范围不足、3 个隔离，频带及采样行差额均为零。8000 Hz 两档标差约 22.26%。各频带起点均为 6 ms，整点可交付。
+
+起点分歧样例共 6 个频带，全部单独可拟合：500 Hz 前置段含一处已排除尖峰，1000 Hz 最大峰为 80 ms 处反射，2000 Hz 到达 85 ms、偏离整点起点 25 ms 约 60 ms，整点退回补测。

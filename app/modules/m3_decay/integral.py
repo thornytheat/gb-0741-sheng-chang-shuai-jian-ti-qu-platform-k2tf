@@ -38,8 +38,12 @@ def reverse_energy(power, noise):
     return result
 
 
+def start_index(signal):
+    return signal.onset_index if signal.onset_index is not None else signal.peak_index
+
+
 def integrate(signal):
-    power = tuple(value * value for value in signal.pa[signal.peak_index:])
+    power = tuple(value * value for value in signal.pa[start_index(signal):])
     tail_from, noise = tail_power(power)
     energy = reverse_energy(power, noise)
     initial = energy[0]

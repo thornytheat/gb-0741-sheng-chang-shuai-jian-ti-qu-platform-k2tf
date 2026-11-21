@@ -37,7 +37,7 @@ export function draw(canvas, curve, fit, gate, cursor) {
     line(x, top, x, bottom, grid);
     ctx.fillText(t.toFixed(2), x, bottom + 14);
   }
-  ctx.fillText('峰值后时间 / 秒', (left + right) / 2, bottom + 29);
+  ctx.fillText('起点后时间 / 秒', (left + right) / 2, bottom + 29);
   if (!curve) return;
 
   const range = gate?.usable_until_s;

@@ -9,6 +9,9 @@ REASONS = {
     'DYNAMIC_RANGE': '声衰减深度不足', 'WINDOW_TOO_SHORT': '回归区间采样点不足',
     'NON_DECAYING': '回归斜率无效', 'LOW_LINEARITY': '回归线性度低于阈值',
     'T_DISAGREEMENT': 'T20 与 T30 差异超过阈值', 'DUPLICATE_ROW': '同一采样点的相同副本',
+    'LEADING_SILENCE': '到达前为底噪，不计入衰减起点', 'SPIKE_REJECTED': '孤立尖峰未形成持续到达，已排除',
+    'ONSET_NONE': '未找到持续到达', 'ONSET_DIVERGENT': '到达时刻与同测点其他频带不一致',
+    'POINT_RETEST': '频带起点不一致，整点退回补测',
 }
 
 

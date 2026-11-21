@@ -4,7 +4,8 @@ import * as panels from './panels.js';
 const {$, fixed} = panels;
 const state = {result: null, manifest: null, band: 500, cursor: null, source: null, busy: false, view: 'decay'};
 const nav = [...document.querySelectorAll('nav a')];
-const auxiliary = ['intake', 'calibration', 'archive'];
+const auxiliary = ['intake', 'calibration', 'onset', 'archive'];
+const ruleVersion = document.querySelector('meta[name="rule-version"]')?.content;
 
 async function request(path, options) {
   const response = await fetch(path, options);
@@ -24,7 +25,7 @@ function feedback(message, bad = false) {
 function controls() {
   document.querySelector('[form="run-form"]').disabled = state.busy;
   $('upload').querySelector('button').disabled = state.busy;
-  $('rerun').disabled = state.busy || !state.manifest;
+  $('rerun').disabled = state.busy || !state.manifest || state.manifest.version !== ruleVersion;
   const link = $('export');
   if (state.manifest) {
     link.href = `/api/runs/${state.manifest.id}/export`;
@@ -76,6 +77,7 @@ function choose(band) {
   panels.fitPanel(selected('fit'), row);
   panels.noisePanel(selected('noise'));
   panels.reconcile(state.result.reconcile, state.band, choose);
+  panels.onset(state.result.onset, state.band, choose);
   chart();
 }
 

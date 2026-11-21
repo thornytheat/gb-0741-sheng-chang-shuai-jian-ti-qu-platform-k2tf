@@ -2,6 +2,7 @@ export const $ = (id) => document.getElementById(id);
 export const fixed = (value, digits = 3) => value == null ? '—' : Number(value).toFixed(digits);
 const scientific = (value) => value == null ? '—' : value.toExponential(3);
 const states = {FIT: ['可拟合', 'good'], INSUFFICIENT: ['范围不足', 'warn'], ISOLATED: ['隔离', 'bad']};
+const ruleVersion = document.querySelector('meta[name="rule-version"]')?.content;
 
 function el(tag, text, className) {
   const node = document.createElement(tag);
@@ -111,6 +112,31 @@ export function reconcile(data, band, pick) {
   }), data.bands.findIndex((row) => row.band_hz === band));
 }
 
+export function onset(data, band, pick) {
+  if (!data) return;
+  const deliverable = data.status === 'DELIVERABLE';
+  $('delivery').textContent = deliverable ? '可交付' : '退回补测';
+  $('divergent').textContent = data.divergent_bands.length;
+  const verdict = $('onset-verdict');
+  verdict.textContent = deliverable ? '整点可交付' : `整点退回补测 · ${data.divergent_bands.join('、')} Hz`;
+  verdict.className = deliverable ? 'good' : 'bad';
+  $('onset-summary').replaceChildren(specs([
+    ['整点起点 / s', fixed(data.point_onset_s)], ['对齐容差 / ms', fixed(1000 * data.tolerance_s, 1)],
+    ['参与对齐频带', data.checked_bands], ['分歧频带 / Hz', data.divergent_bands.join('、') || '无'],
+    ['收件隔离频带 / Hz', data.isolated_bands.join('、') || '无'],
+  ]));
+  table('onset-table', ['Hz', '采信起点', '来源行', '偏差 / ms', '前置段', '排除尖峰', '判定', '证据'], data.bands.map((row) => {
+    const prefix = row.prefix.samples ? `${row.prefix.samples} 样本 · 行 ${row.prefix.from_line}–${row.prefix.to_line}` : '无';
+    const spikes = row.spikes.length ? `${row.spikes.length} 处 · 行 ${row.spikes.map((event) => event.line).join('、')}` : '无';
+    const label = row.onset_index == null ? ['无到达', 'bad'] : row.aligned ? ['对齐', 'good'] : ['分歧', 'bad'];
+    return [action(`${row.band_hz}`, () => pick(row.band_hz)),
+      row.onset_index == null ? '—' : `样本 ${row.onset_index} · ${fixed(row.onset_s)} s`, row.onset_line ?? '—',
+      row.deviation_s == null ? '—' : fixed(1000 * row.deviation_s, 1), prefix, spikes,
+      el('span', label[0], `status-label ${label[1]}`),
+      action('查看', () => evidence(`${row.band_hz} Hz 起点`, row))];
+  }), data.bands.findIndex((row) => row.band_hz === band));
+}
+
 export function intake(data) {
   const count = data.counts;
   $('intake-data').replaceChildren(specs([['编码', data.encoding], ['输入记录', count.input], ['采信', count.accepted],
@@ -128,8 +154,10 @@ export function calibration(data) {
 }
 
 export function history(runs, current, pick) {
-  table('run-list', ['批次', '来源摘要', '规则', '归档时间 UTC', '耗时 ms', '结果摘要'], runs.map((row) => [
-    action(row.id.slice(0, 12), () => pick(row.id)), row.source_id.slice(0, 12), row.version, row.created_at.slice(0, 19).replace('T', ' '),
-    row.elapsed_ms, action(row.digest.slice(0, 12), () => evidence('运行清单', row)),
-  ]), runs.findIndex((row) => row.id === current));
+  table('run-list', ['批次', '来源摘要', '规则', '归档时间 UTC', '耗时 ms', '结果摘要'], runs.map((row) => {
+    const stale = row.version !== ruleVersion;
+    return [action(row.id.slice(0, 12), () => pick(row.id)), row.source_id.slice(0, 12),
+      stale ? el('span', `${row.version} · 已失效`, 'warn') : row.version, row.created_at.slice(0, 19).replace('T', ' '),
+      row.elapsed_ms, action(row.digest.slice(0, 12), () => evidence('运行清单', row))];
+  }), runs.findIndex((row) => row.id === current));
 }

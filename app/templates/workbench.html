@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="rule-version" content="{{ version }}">
   <title>声场衰减提取台</title>
   <link rel="stylesheet" href="/static/theme.css">
   <link rel="stylesheet" href="/static/layout.css">
@@ -17,7 +18,7 @@
       <span class="nav-group">采集</span>
       <a href="#intake">脉冲响应收件</a><a href="#calibration">量纲校准</a>
       <span class="nav-group">分析</span>
-      <a href="#decay" aria-current="page">能量衰减</a><a href="#fit">拟合时段</a><a href="#noise">噪声判废</a><a href="#reconcile">频段勾稽</a>
+      <a href="#onset">起点对齐</a><a href="#decay" aria-current="page">能量衰减</a><a href="#fit">拟合时段</a><a href="#noise">噪声判废</a><a href="#reconcile">频段勾稽</a>
       <span class="nav-group">留档</span>
       <a href="#archive">复测归档</a>
     </nav>
@@ -30,9 +31,9 @@
     </header>
     <main>
       <div class="mast"><div><p class="kicker">脉冲响应分析</p><h1>声场衰减提取台</h1></div>
-        <dl class="run-meta"><div><dt>来源摘要</dt><dd id="source-meta">—</dd></div><div><dt>归档批次</dt><dd id="run-meta">—</dd></div><div><dt>归档时间 UTC</dt><dd id="run-time">—</dd></div></dl></div>
+        <dl class="run-meta"><div><dt>来源摘要</dt><dd id="source-meta">—</dd></div><div><dt>归档批次</dt><dd id="run-meta">—</dd></div><div><dt>归档时间 UTC</dt><dd id="run-time">—</dd></div><div><dt>整点交付</dt><dd id="delivery">—</dd></div></dl></div>
       <form class="toolbar" id="run-form">
-        <label for="sample">响应来源</label><select name="sample" id="sample"><option value="hall">礼堂复测 · 脏样例</option><option value="reference">标准参考 · 校准样例</option><option value="custom" hidden>上传文件</option></select>
+        <label for="sample">响应来源</label><select name="sample" id="sample"><option value="hall">礼堂复测 · 脏样例</option><option value="retest">礼堂复测 · 起点分歧样例</option><option value="reference">标准参考 · 校准样例</option><option value="custom" hidden>上传文件</option></select>
         <label for="band">中心频率</label><select id="band" name="band" disabled><option value="">—</option></select>
         <span class="muted" id="sample-count">等待响应</span>
       </form>
@@ -43,6 +44,7 @@
         <div class="kpi"><span>隔离</span><strong id="isolated">—</strong><small>频带</small></div>
         <div class="kpi"><span>频带差额</span><strong id="difference">—</strong><small>频带</small></div>
         <div class="kpi"><span>拟合标差</span><strong id="flagged">—</strong><small>频带</small></div>
+        <div class="kpi"><span>起点分歧</span><strong id="divergent">—</strong><small>频带</small></div>
       </div>
       <div id="analysis" class="analysis grid">
         <section class="panel graph" id="decay"><div class="panel-head"><div><h2>能量衰减</h2><span class="muted" id="frequency">— Hz</span></div><div class="legend"><span><i></i>积分曲线</span><span><i></i>拟合区间</span><span><i></i>噪声底</span></div></div>
@@ -56,6 +58,7 @@
       <div class="grid auxiliary">
         <section class="panel" id="intake" hidden><div class="panel-head"><h2>脉冲响应收件</h2><span class="muted">CSV</span></div><div class="body"><form id="upload"><label>上传响应<input type="file" name="file" accept=".csv,text/csv" required></label><button type="submit" class="button">收件并分析</button></form><div id="intake-data"></div></div><div id="intake-issues" class="table-wrap"></div></section>
         <section class="panel" id="calibration" hidden><div class="panel-head"><h2>量纲校准</h2><span class="muted">Pa</span></div><div id="calibration-data" class="table-wrap"></div></section>
+        <section class="panel" id="onset" hidden><div class="panel-head"><h2>起点对齐</h2><span id="onset-verdict" class="muted">—</span></div><div id="onset-summary" class="body"></div><div id="onset-table" class="table-wrap"></div></section>
         <section class="panel" id="archive" hidden><div class="panel-head"><h2>复测归档</h2><button class="button" type="button" id="rerun" disabled>重跑归档</button></div><div id="run-list" class="table-wrap"></div></section>
       </div>
     </main>

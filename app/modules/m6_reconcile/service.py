@@ -3,6 +3,7 @@ from collections import Counter
 from app.modules.m3_decay.service import decay
 from app.modules.m4_fit.service import fits
 from app.modules.m6_reconcile.comparison import DISAGREEMENT_LIMIT, compare
+from app.modules.m8_onset.service import onset_report
 
 
 def reconcile(data, fitted):
@@ -27,5 +28,5 @@ def reconcile(data, fitted):
 def evaluate(data):
     curves, calibration, decay_report = decay(data)
     fitted, noise = fits(curves)
-    return {'calibration': calibration, 'decay': decay_report, 'fit': fitted, 'noise': noise,
-            'reconcile': reconcile(data, fitted)}
+    return {'calibration': calibration, 'onset': onset_report(data), 'decay': decay_report, 'fit': fitted,
+            'noise': noise, 'reconcile': reconcile(data, fitted)}

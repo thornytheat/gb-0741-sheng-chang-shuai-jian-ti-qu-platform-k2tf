@@ -59,7 +59,7 @@ def test_incomplete_csv_is_rejected_before_storage(client, encode):
     reply = client.post('/api/intake', files={'file': ('broken.csv', encode() + b'"broken')})
     assert (reply.status_code, reply.json()['code']) == (422, 'BROKEN_CSV')
     with client.app.state.store.connect() as connection:
-        assert connection.execute('SELECT COUNT(*) FROM source').fetchone()[0] == 2
+        assert connection.execute('SELECT COUNT(*) FROM source').fetchone()[0] == len(SAMPLES)
 
 
 def test_config_conflict_keeps_both_citation_lines(encode):
